@@ -2,6 +2,7 @@ import React from 'react'
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader'
+import Stats from 'stats.js'
 import glbFile from './models/target.glb'
 import './App.css'
 
@@ -21,6 +22,15 @@ class App extends React.Component {
     this.directionalLight = new THREE.DirectionalLight(0xffffff, 0.5)
     this.animate.bind(this)
     this.playAllClips.bind(this)
+    this.addStats.bind(this)
+  }
+  addStats(stsNo){
+    var sts = new Stats()
+    sts.dom.style.postion = 'relative'
+    sts.dom.style.float = 'left'
+    document.body.appendChild(sts.dom)
+    sts.showPanel(stsNo)
+    return sts
   }
   resize() {
     var width = window.innerWidth
@@ -38,6 +48,7 @@ class App extends React.Component {
       this.prevTime = dt
       this.animate()
     })
+    this.fpsStats.update()
   }
   playAllClips() {
     this.clips.forEach((clip) => {
@@ -47,6 +58,11 @@ class App extends React.Component {
   componentDidMount() {
     window.addEventListener('resize', this.resize.bind(this))
     this.el.current.appendChild(this.renderer.domElement)
+
+    //FPS panel
+    this.fpsStats = this.addStats(0)
+
+    //Add lights
     this.scene.add(this.ambientLight)
     this.scene.add(this.directionalLight)
 
