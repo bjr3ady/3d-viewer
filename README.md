@@ -1,6 +1,8 @@
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 A simple 3d model veiwer load and display specific .glb file converted from a .fbx file.
 
+### run `npm install` before use.
+
 ## Available Scripts
 
 In the project directory, you can run:
