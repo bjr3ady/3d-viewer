@@ -4,6 +4,7 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader'
 import glbFile from './models/slotmathinel_01.glb'
 import rollFile from './models/roll_01.glb'
+import Stats from 'stats.js'
 import './App.css'
 
 class App extends React.Component {
@@ -23,6 +24,15 @@ class App extends React.Component {
     this.animate.bind(this)
     this.playAllClips.bind(this)
     this.loadGltf.bind(this)
+    this.addStats.bind(this)
+  }
+  addStats(stsNo){
+    var sts = new Stats()
+    sts.dom.style.postion = 'relative'
+    sts.dom.style.float = 'left'
+    document.body.appendChild(sts.dom)
+    sts.showPanel(stsNo)
+    return sts
   }
   resize() {
     var width = window.innerWidth
@@ -40,6 +50,7 @@ class App extends React.Component {
       this.prevTime = dt
       this.animate()
     })
+    this.fpsStats.update()
   }
   playAllClips() {
     this.clips.forEach((clip) => {
@@ -64,6 +75,11 @@ class App extends React.Component {
     this.mixer = new THREE.AnimationMixer()
     this.camera.position.set(0, 2, 3)
     this.ambientLight.position.set(-1, 1, 1)
+
+    //FPS panel
+    this.fpsStats = this.addStats(0)
+
+    //Add lights
     this.scene.add(this.ambientLight)
     this.scene.add(this.directionalLight)
 

@@ -35,6 +35,7 @@
   },
   "devDependencies": {
     "fbx2gltf": "^0.9.7-p1",
+    "stats.js": "^0.17.0",
     "three": "^0.113.2"
   }
 }
