@@ -21,6 +21,7 @@ class App extends React.Component {
     this.loader = new GLTFLoader()
     this.ambientLight = new THREE.AmbientLight(0xffffff, 1)
     this.directionalLight = new THREE.DirectionalLight(0xffffff, 0.5)
+    
     this.animate.bind(this)
     this.playAllClips.bind(this)
     this.loadGltf.bind(this)
@@ -84,16 +85,6 @@ class App extends React.Component {
     this.scene.add(this.directionalLight)
 
     //load gltf
-    // this.loader.load(glbFile, (gltf) =>{
-    //   this.scene.add(gltf.scene)
-    //   this.clips.push(gltf.animations)
-
-    // }, (xhr) => {
-    //   console.log((xhr.loaded / xhr.total * 100) + '% loaded')
-    // }, (err) => {
-    //   console.log('Error occured:' + err)
-    // })
-
     this.loadGltf(glbFile)
     this.loadGltf(rollFile)
 
