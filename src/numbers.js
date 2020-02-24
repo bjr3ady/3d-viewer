@@ -74,12 +74,14 @@ export default class Number {
   transformNumber(num) {
     var strNumArr = []
     var numStr = appendDotToNumStr(num)
-    if (num >= 9999999999.99) {
+    if (num >= 9999999.99) {
       num = convertM(num)
       numStr = appendKMEx(num + '', 'M')
-    } else if (num >= 9999999.99) {
+    } else if (num >= 999999.99) {
       num = convertK(num)
       numStr = appendKMEx(num + '', 'k')
+    } else {
+      numStr = reverseString(numStr)
     }
     if (numStr.length >= 8) {
       var tmpStr = numStr.substr(0, 7)

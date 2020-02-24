@@ -158,7 +158,7 @@ class App extends React.Component {
     //load gltf
     this.loadGltf(glbFile).then()
     this.loadGltf(rollFile).then()
-    this.NumberBoard.showNumbers(39412345.31)
+    this.NumberBoard.showNumbers(1234567890.31)
 
     this.addAxis()
 
