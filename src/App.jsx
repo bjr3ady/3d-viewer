@@ -3,11 +3,14 @@ import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader'
 import glbFile from './models/slotmathinel_01.glb'
-import rollFile from './models/roll_01.glb'
 import Stats from 'stats.js'
 import bgImg from './models/gradients.png'
 import Num from './numbers'
+import Roll from './roll'
 import './App.css'
+import Btn from './Btn'
+
+const scores = [3, 6, 9, 12, 15, 18]
 
 class App extends React.Component {
   constructor(props) {
@@ -15,24 +18,25 @@ class App extends React.Component {
     this.el = React.createRef()
     this.mixer = null
     this.prevTime = null
-    this.clips = []
+    this.score = 0
     this.scene = new THREE.Scene()
     this.NumberBoard = new Num(this.scene)
     this.camera = new THREE.PerspectiveCamera(90, window.innerWidth / window.innerHeight, 1, 100)
     this.renderer = new THREE.WebGLRenderer({antialias: true, outputEncoding: THREE.sRGBEncoding})
     this.renderer.setSize(window.innerWidth, window.innerHeight)
     this.loader = new GLTFLoader()
+    this.rollers = new Roll(this.scene, this.loader)
     this.worldLight = new THREE.HemisphereLight(0xffffff, 50)
     this.directionalLight = new THREE.DirectionalLight(0xffffff, 1)
     this.bgTexture = new THREE.TextureLoader().load(bgImg)
     
-    this.animate.bind(this)
-    this.playAllClips.bind(this)
-    this.loadGltf.bind(this)
-    this.addStats.bind(this)
-    this.addAxis.bind(this)
-    this.addLights.bind(this)
-    this.addFloor.bind(this)
+    this.animate = this.animate.bind(this)
+    this.playAllClips = this.playAllClips.bind(this)
+    this.loadGltf = this.loadGltf.bind(this)
+    this.addStats = this.addStats.bind(this)
+    this.addLights = this.addLights.bind(this)
+    this.addFloor = this.addFloor.bind(this)
+    this.calculateScores = this.calculateScores.bind(this)
   }
   addStats(stsNo){
     var sts = new Stats()
@@ -50,6 +54,7 @@ class App extends React.Component {
     this.camera.updateProjectionMatrix()
   }
   animate() {
+    this.fpsStats.update()
     requestAnimationFrame((dt) => {
       const time = (dt - this.prevTime) / 1000
       this.controls.update()
@@ -57,8 +62,10 @@ class App extends React.Component {
       this.renderer.render(this.scene, this.camera)
       this.prevTime = dt
       this.animate()
+      if (this.rollers && this.rollers.animate) {
+        this.rollers.animate(dt)
+      }
     })
-    this.fpsStats.update()
   }
   playAllClips() {
     this.clips.forEach((clip) => {
@@ -82,33 +89,11 @@ class App extends React.Component {
     return new Promise((resolve, reject) => {
       this.loader.load(file, (gltf) => {
         this.scene.add(gltf.scene)
-        // console.log(gltf.scene)
-        this.clips.push(gltf.animations)
         resolve()
       }, undefined, (err) => {
         reject(err)
       })
     })
-  }
-  addAxis() {
-    //red
-    var xline = new THREE.Line( new THREE.Geometry().setFromPoints([
-      new THREE.Vector3(0, 0, 0),
-      new THREE.Vector3(5, 0, 0)
-    ]), new THREE.LineBasicMaterial( { color: 0xff0000 } ) )
-    //green
-    var yline = new THREE.Line( new THREE.Geometry().setFromPoints([
-        new THREE.Vector3(0, 0, 0),
-        new THREE.Vector3(0, 5, 0)
-    ]), new THREE.LineBasicMaterial( { color: 0x00ff00 } ) )
-    //blue
-    var zline = new THREE.Line( new THREE.Geometry().setFromPoints([
-        new THREE.Vector3(0, 0, 0),
-        new THREE.Vector3(0, 0, 5)
-    ]), new THREE.LineBasicMaterial( { color: 0x0000ff } ) )
-    this.scene.add(xline)
-    this.scene.add(yline)
-    this.scene.add(zline)
   }
   addLights() {
     var topLight = new THREE.DirectionalLight(0xffffff, 2)
@@ -138,10 +123,10 @@ class App extends React.Component {
     this.el.current.appendChild(this.renderer.domElement)
     this.renderer.setPixelRatio( window.devicePixelRatio )
     this.controls = new OrbitControls(this.camera, this.renderer.domElement)
-    this.controls.target.set(0, 0.5, 0)
-    // this.controls.enablePan = false
+    this.controls.target.set(0, 1, 0)
+    this.controls.enablePan = false
     this.mixer = new THREE.AnimationMixer()
-    this.camera.position.set(1, 1.2, 3)
+    this.camera.position.set(0, 1.2, 2)
 
     //Set background
     this.scene.background = this.bgTexture
@@ -156,21 +141,36 @@ class App extends React.Component {
     // this.addFloor()
 
     //load gltf
-    this.loadGltf(glbFile).then()
-    this.loadGltf(rollFile).then()
-    this.NumberBoard.showNumbers(1234567890.31)
+    this.loadGltf(glbFile)
+    this.rollers.loadRollModels()
+    this.NumberBoard.showNumbers(0)
 
-    this.addAxis()
+    //Show axes
+    this.scene.add(new THREE.AxesHelper(5))
 
     this.animate()
-    this.playAllClips()
   }
   componentWillUnmount() {
     window.removeEventListener('resize', this.resize.bind(this))
   }
+  calculateScores(aNum, bNum, cNum) {
+    console.log(`num: ${aNum} | ${bNum} | ${cNum}`)
+    if (this.NumberBoard && this.NumberBoard.showNumbers) {
+      if (aNum === bNum && bNum === cNum) {
+        this.score += scores[aNum] * 3
+        this.NumberBoard.showNumbers(this.score)
+        console.log(`bingo !!!${aNum}-${bNum}-${cNum}`)
+      } else if (aNum === bNum || aNum === cNum || bNum === cNum) {
+        this.score += scores[aNum] * 2
+        this.NumberBoard.showNumbers(this.score)
+      }
+    }
+  }
   render() {
     return (
-      <div className="App" ref={this.el}></div>
+      <div className="App" ref={this.el}>
+        <Btn rollers={this.rollers} goal={[3,1,3]} callback={this.calculateScores} />
+      </div>
     )
   }
 }

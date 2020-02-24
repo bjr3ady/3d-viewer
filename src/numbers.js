@@ -68,8 +68,8 @@ export default class Number {
   constructor(scene) {
     this.scene = scene
     this.group = null
-    this.createNumberMesh.bind(this)
-    this.showNumbers.bind(this)
+    this.createNumberMesh = this.createNumberMesh.bind(this)
+    this.showNumbers = this.showNumbers.bind(this)
   }
   transformNumber(num) {
     var strNumArr = []
@@ -98,37 +98,44 @@ export default class Number {
     var texture = t.clone()
     texture.needsUpdate = true
     texture.repeat.set(0.22, 0.33)
-    texture.offset.set(numMap[num].u, numMap[num].v)
-    var material = new THREE.MeshBasicMaterial({map: texture, transparent: true})
-    var geometry = new THREE.PlaneGeometry(0.1, 0.15)
-    var mesh = new THREE.Mesh(geometry, material)
-    mesh.position.set(x, 1.77, 0.421)
-    return mesh
+    if (numMap[num] && numMap[num].u && numMap[num].v) {
+      console.log(`set ${numMap[num].u}, ${numMap[num].v}`)
+      texture.offset.set(numMap[num].u, numMap[num].v)
+      var material = new THREE.MeshBasicMaterial({map: texture, transparent: true})
+      var geometry = new THREE.PlaneGeometry(0.1, 0.15)
+      var mesh = new THREE.Mesh(geometry, material)
+      mesh.position.set(x, 1.77, 0.421)
+      return mesh
+    }
   }
   showNumbers(num) {
-    new THREE.TextureLoader().load(numImg, (texture) => {
-      texture.wrapT = THREE.ReplaceStencilOp
-      if (!this.group) {
-        this.group = new THREE.Group()
-        this.scene.add(this.group)
-      } else {
-        this.scene.remove(this.group)
-        this.group = new THREE.Group()
-        this.scene.add(this.group)
-      }
-      var numStrArr = this.transformNumber(num)
-      numStrArr.forEach((nStr, index) => {
-        if (nStr === '.') {
-          this.group.add(this.createNumberMesh(texture, 12, xAxis[2]))
-        } else if (nStr === 'k') {
-          this.group.add(this.createNumberMesh(texture, 11, xAxis[3]))
-        } else if (nStr === 'M') {
-          this.group.add(this.createNumberMesh(texture, 10, xAxis[3]))
-        } else if (nStr === ',') {
-          this.group.add(this.createNumberMesh(texture, 13, xAxis[7]))
+    return new Promise((resolve) => {
+      new THREE.TextureLoader().load(numImg, (texture) => {
+        texture.wrapT = THREE.ReplaceStencilOp
+        if (!this.group) {
+          this.group = new THREE.Group()
+          this.scene.add(this.group)
         } else {
-          this.group.add(this.createNumberMesh(texture, nStr * 1, xAxis[index]))
+          this.scene.remove(this.group)
+          this.group = new THREE.Group()
+          this.scene.add(this.group)
         }
+        var numStrArr = this.transformNumber(num)
+        numStrArr.forEach((nStr, index) => {
+          if (nStr === '.') {
+            this.group.add(this.createNumberMesh(texture, 12, xAxis[2]))
+          } else if (nStr === 'k') {
+            this.group.add(this.createNumberMesh(texture, 11, xAxis[3]))
+          } else if (nStr === 'M') {
+            this.group.add(this.createNumberMesh(texture, 10, xAxis[3]))
+          } else if (nStr === ',') {
+            this.group.add(this.createNumberMesh(texture, 13, xAxis[7]))
+          } else {
+            this.group.add(this.createNumberMesh(texture, nStr * 1, xAxis[index]))
+          }
+        })
+        console.log('Finish render scores...')
+        resolve()
       })
     })
   }

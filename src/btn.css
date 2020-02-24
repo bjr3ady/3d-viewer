@@ -1,0 +1,12 @@
+.btn {
+  position: absolute;
+  background-color: #fff;
+  cursor: pointer;
+  height: 80px;
+  width: 80px;
+  text-align: center;
+  line-height: 81px;
+  top: 30px;
+  right: 30px;
+  z-index: 999;
+}
