@@ -1,4 +1,5 @@
 import rollFile from './models/roll_01.glb'
+import * as TWEEN from 'es6-tween'
 
 function newRollModel(originalModel) {
   var newModel = originalModel.clone()
@@ -6,13 +7,17 @@ function newRollModel(originalModel) {
   return newModel
 }
 
+const R = 3
+
 export default class Roll {
   constructor(scene, loader) {
     this.scene = scene
     this.loader = loader
     this.isRolling = false
+    this.isProc = false
     this.callback = null
     this.goal = []
+    this.tween = null
     this.aRoller = this.bRoller = this.cRoller = null
   }
   loadRollModels() {
@@ -33,51 +38,51 @@ export default class Roll {
     })
   }
   roll(roller, index) {
-    if (roller && index) {
-      return new Promise((resolve) => {
-        if (index) {
-          setTimeout(() => {
-            roller.rotation.x = (Math.PI / 3) * index
-            resolve()
-          }, 1000)
-        }
-      })
-    }
+    roller.rotation.x = (Math.PI / R) * index
   }
-  stop(roller, index) {
+  stopAt(roller, index, order) {
     return new Promise((resolve) => {
-      if (index) {
-        setTimeout(() => {
-          roller.rotation.x = (Math.PI / 3) * index
-          resolve()
-        }, 1000)
-      }
+      var rotationX = {x: roller.rotation.x}
+      console.log(`stop: ${(Math.PI / R) * index} index: ${index}`)
+      new TWEEN.Tween(rotationX)
+        .to({x: (Math.PI / R) * index}, order * 300)
+        .easing(TWEEN.Easing.Linear)
+        .on('update', () => {
+          roller.rotation.x = rotationX.x
+        })
+        .on('complete', resolve)
+        .start()
     })
   }
   setTo(aIndex, bIndex, cIndex, handler) {
-    this.stop(this.aRoller, aIndex)
-      .then(this.stop(this.bRoller, bIndex)
-      .then(this.stop(this.cRoller, cIndex)
-      .then(handler)
-    ))
+    Promise.all([
+      this.stopAt(this.aRoller, aIndex, 1),
+      this.stopAt(this.bRoller, bIndex, 2),
+      this.stopAt(this.cRoller, cIndex, 3)
+    ]).then(handler)
   }
   animate(dt) {
     if (this.isRolling) {
       this.roll(this.cRoller, dt)
-        .then(this.roll(this.bRoller, dt)
-        .then(this.roll(this.aRoller, dt)
-      ))
+      this.roll(this.bRoller, dt)
+      this.roll(this.aRoller, dt)
     } else {
+      if (this.goal.length === 0) {
+        return
+      }
+      if (this.isProc) {
+        TWEEN.update()
+        return
+      }
+      this.isProc = true
       this.setTo(this.goal[0], this.goal[1], this.goal[2], () => {
-        setTimeout(() => {
-          if (this.callback) {
-            this.callback(this.goal[0], this.goal[1], this.goal[2])
-              this.callback = null
-              this.goal = []
-              this.isRolling = false
-              console.log('callback...')
-          }
-        }, 300)
+        this.isProc = false
+        if (this.callback) {
+          this.callback(this.goal[0], this.goal[1], this.goal[2])
+          this.goal = []
+          this.isRolling = false
+          console.log('callback...')
+        }
       })
     }
   }

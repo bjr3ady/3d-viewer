@@ -170,7 +170,7 @@ class App extends React.Component {
   render() {
     return (
       <div className="App" ref={this.el}>
-        <Btn rollers={this.rollers} goal={[5,5,5]} callback={this.calculateScores} />
+        <Btn rollers={this.rollers} callback={this.calculateScores} />
       </div>
     )
   }

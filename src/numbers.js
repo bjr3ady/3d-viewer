@@ -65,6 +65,7 @@ function appendDotToNumStr(num) {
 }
 
 function setNumber(num, index, group) {
+  if (!num) { return }
   var target = null
   group.children.forEach((mesh) => {
     if (mesh.userData.index === index) {
@@ -135,10 +136,10 @@ export default class Number {
         mesh.userData = {index: i}
         this.group.add(mesh)
       }
-      console.log(this.group)
     })
   }
   showNumbers(num) {
+    if (!num) { return }
     var numStrArr = this.transformNumber(num)
     if (numStrArr.length < 10) {
       var l = 10 - numStrArr.length
@@ -156,7 +157,7 @@ export default class Number {
       } else if (nStr === 'M') {
         setNumber(10, 3, this.group)
       } else if (nStr === ',') {
-        setNumber(13, 7, this.group)
+        setNumber(13, 6, this.group)
       } else {
         setNumber(nStr * 1, index, this.group)
       }
