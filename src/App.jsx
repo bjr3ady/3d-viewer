@@ -10,7 +10,7 @@ import Roll from './roll'
 import './App.css'
 import Btn from './Btn'
 
-const scores = [3, 6, 9, 12, 15, 18]
+const scores = [3, 6, 9, 12, 15, 800000]
 
 class App extends React.Component {
   constructor(props) {
@@ -143,10 +143,12 @@ class App extends React.Component {
     //load gltf
     this.loadGltf(glbFile)
     this.rollers.loadRollModels()
-    this.NumberBoard.showNumbers(0)
 
     //Show axes
     this.scene.add(new THREE.AxesHelper(5))
+
+    //Init number board
+    this.NumberBoard.initNumbers()
 
     this.animate()
   }
@@ -159,7 +161,6 @@ class App extends React.Component {
       if (aNum === bNum && bNum === cNum) {
         this.score += scores[aNum] * 3
         this.NumberBoard.showNumbers(this.score)
-        console.log(`bingo !!!${aNum}-${bNum}-${cNum}`)
       } else if (aNum === bNum || aNum === cNum || bNum === cNum) {
         this.score += scores[aNum] * 2
         this.NumberBoard.showNumbers(this.score)
@@ -169,7 +170,7 @@ class App extends React.Component {
   render() {
     return (
       <div className="App" ref={this.el}>
-        <Btn rollers={this.rollers} goal={[3,1,3]} callback={this.calculateScores} />
+        <Btn rollers={this.rollers} goal={[5,5,5]} callback={this.calculateScores} />
       </div>
     )
   }

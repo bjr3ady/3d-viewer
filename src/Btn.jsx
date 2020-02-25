@@ -19,12 +19,12 @@ export default class Btn extends React.Component {
       e.preventDefault()
       this.setState({enabled: false, txt: 'Waiting...'})
       if (this.state && this.state.rollers && this.state.callback) {
-        // this.state.rollers.goal = this.state.goal
-        if (!this.state.rollers.isRolling) {
-          for (var i = 0; i < 3; i++) {
-            this.state.rollers.goal.push(Math.round(Math.random() * 5 + 1))
-          }
-        }
+        this.state.rollers.goal = this.state.goal
+        // if (!this.state.rollers.isRolling) {
+        //   for (var i = 0; i < 3; i++) {
+        //     this.state.rollers.goal.push(Math.round(Math.random() * 5 + 1))
+        //   }
+        // }
         this.state.rollers.callback = this.state.callback
         this.state.rollers.isRolling = !this.state.rollers.isRolling
         setTimeout(() => {
