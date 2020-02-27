@@ -4,9 +4,11 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import Stats from 'stats.js'
 import bgImg from './models/gradients.png'
 import ModelHandler from './modelHandler'
+import EvtHook from './eventHooks'
 import Num from './numbers'
 import './App.css'
-import Btn from './Btn'
+// import Btn from './Btn'
+import SpinBtn from './spinBtn'
 
 
 const scores = [3, 6, 9, 12, 15, 800000]
@@ -22,6 +24,7 @@ class App extends React.Component {
     this.score = 0
     this.scene = new THREE.Scene()
     this.HUDScene = new THREE.Scene()
+    this.targets = []
     this.NumberBoard = new Num(this.scene)
     this.camera = new THREE.PerspectiveCamera(90, acspet, 1, 100)
     this.HUDCamera = new THREE.OrthographicCamera(window.innerWidth/ -2, window.innerWidth/ 2, window.innerHeight / 2, window.innerHeight / -2, 1, 1000)
@@ -30,12 +33,16 @@ class App extends React.Component {
     this.renderer.setSize(window.innerWidth, window.innerHeight)
     this.bgTexture = new THREE.TextureLoader().load(bgImg)
     this.modelHandler = new ModelHandler()
+    this.eventHook = null
+    this.spinBtn = null
+    this.rollers = null
 
     this.animate = this.animate.bind(this)
     this.playAllClips = this.playAllClips.bind(this)
     this.addStats = this.addStats.bind(this)
     this.addLights = this.addLights.bind(this)
     this.calculateScores = this.calculateScores.bind(this)
+    this.bindEvents = this.bindEvents.bind(this)
   }
   addStats(stsNo) {
     let sts = new Stats()
@@ -51,6 +58,8 @@ class App extends React.Component {
     this.renderer.setSize(width, height)
     this.camera.aspect = width / height
     this.camera.updateProjectionMatrix()
+    this.HUDCamera.aspect = width / height
+    this.HUDCamera.updateProjectionMatrix()
   }
   animate() {
     this.fpsStats.update()
@@ -91,15 +100,22 @@ class App extends React.Component {
     rightLight.position.set(3, 3, -3)
     this.scene.add(rightLight)
   }
+  bindEvents() {
+    //Spin button click
+    this.spinBtn = new SpinBtn(this.rollers, this.calculateScores)
+    this.eventHook.bind('spin_frame', 'mouseup', this.spinBtn.btnClick)
+    this.eventHook.bind('spin_frame', 'mousedown', this.spinBtn.btnDown)
+  }
   componentDidMount() {
     window.addEventListener('resize', this.resize.bind(this))
     this.el.current.appendChild(this.renderer.domElement)
+    this.eventHook = new EvtHook(this.el.current, this.scene, this.renderer, this.camera)
     this.renderer.setPixelRatio(window.devicePixelRatio)
     this.renderer.autoClear = false
     this.renderer.shadowMap.enabled = true
     this.controls = new OrbitControls(this.camera, this.renderer.domElement)
     this.controls.target.set(0, 1, 0)
-    // this.controls.enablePan = false
+    this.controls.enablePan = false
     this.mixer = new THREE.AnimationMixer()
     this.camera.position.set(0, 1.2, 2)
 
@@ -121,10 +137,12 @@ class App extends React.Component {
       this.scene.add(models[2].aRoller) // roller0 model
       this.scene.add(models[2].bRoller) // roller1 model
       this.scene.add(models[2].cRoller) // roller2 model
+
+      this.bindEvents()
     })
 
     //Show axes
-    this.scene.add(new THREE.AxesHelper(5))
+    // this.scene.add(new THREE.AxesHelper(5))
 
     //Init number board
     this.NumberBoard.initNumbers()
@@ -151,7 +169,7 @@ class App extends React.Component {
   render() {
     return (
       <div className="App" ref={this.el}>
-        <Btn rollers={this.modelHandler.rollers} callback={this.calculateScores} />
+        {/* <Btn rollers={this.modelHandler.rollers} callback={this.calculateScores} /> */}
       </div>
     )
   }

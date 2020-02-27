@@ -6,7 +6,6 @@ export default class SpriteAnimation {
     this.isPlaying = false
     this.currentFrameIndex = 0
     this.currentTexture = this.textures[this.currentFrameIndex]
-    this.ratio = this.currentTexture.image.width / this.currentTexture.image.height
     this.sprite = null
     this.startDt = null
   }
@@ -37,6 +36,7 @@ export default class SpriteAnimation {
     this.sprite.material.map = this.currentTexture
     this.sprite.material.opacity = 0
     console.log('reset')
+    console.log(this.sprite)
   }
   play() {
     if (this.isPlaying) {
