@@ -33,8 +33,8 @@ function convertM(num) {
 }
 
 function reverseString(str) {
-  var strArr = []
-  for (var i = 0; i < str.length; i++) {
+  let strArr = []
+  for (let i = 0; i < str.length; i++) {
     strArr.push(str[i])
   }
   strArr = strArr.reverse()
@@ -43,8 +43,8 @@ function reverseString(str) {
 
 //Append an extension of K or M to represent 1000 and 1000 * 1000
 function appendKMEx(numString, exChar) {
-  var numStr = reverseString(numString)
-  var strArr = []
+  let numStr = reverseString(numString)
+  let strArr = []
   strArr.push(numStr.substr(0, 3))
   strArr.push(exChar)
   strArr.push(numStr.substring(3, numStr.length))
@@ -52,11 +52,11 @@ function appendKMEx(numString, exChar) {
 }
 
 function appendDotToNumStr(num) {
-  var numStr = num + ''
+  let numStr = num + ''
   if (numStr.indexOf('.') <= 0) {
     numStr += '.00'
   } else {
-    var tmpArr = numStr.split('.')
+    let tmpArr = numStr.split('.')
     if (tmpArr[1].length === 1) {
       numStr += '0'
     }
@@ -66,15 +66,15 @@ function appendDotToNumStr(num) {
 
 function setNumber(num, index, group) {
   if (!num) { return }
-  var target = null
+  let target = null
   group.children.forEach((mesh) => {
     if (mesh.userData.index === index) {
       target = mesh
       return
     }
   })
-  var material = target.material
-  var texture = material.map
+  let material = target.material
+  let texture = material.map
   texture.offset.set(numMap[num].u, numMap[num].v)
 }
 
@@ -86,8 +86,8 @@ export default class Number {
     this.showNumbers = this.showNumbers.bind(this)
   }
   transformNumber(num) {
-    var strNumArr = []
-    var numStr = appendDotToNumStr(num)
+    let strNumArr = []
+    let numStr = appendDotToNumStr(num)
     if (num >= 9999999.99) {
       num = convertM(num)
       numStr = appendKMEx(num + '', 'M')
@@ -98,25 +98,25 @@ export default class Number {
       numStr = reverseString(numStr)
     }
     if (numStr.length >= 7) {
-      var tmpStr = numStr.substr(0, 6)
+      let tmpStr = numStr.substr(0, 6)
       tmpStr += ','
       tmpStr += numStr.substring(6, numStr.length)
       numStr = tmpStr
     }
-    for (var i = 0; i < numStr.length; i++) {
+    for (let i = 0; i < numStr.length; i++) {
       strNumArr.push(numStr[i])
     }
     return strNumArr
   }
   createNumberMesh(t, num, x) {
-    var texture = t.clone()
+    let texture = t.clone()
     texture.needsUpdate = true
     texture.repeat.set(0.22, 0.33)
     texture.offset.set(numMap[num].u, numMap[num].v)
-    var material = new THREE.MeshBasicMaterial({ map: texture, transparent: true })
-    var geometry = new THREE.PlaneGeometry(0.1, 0.15)
-    var mesh = new THREE.Mesh(geometry, material)
-    mesh.position.set(x, 1.77, 0.421)
+    let material = new THREE.MeshBasicMaterial({ map: texture, transparent: true, flatShading: true})
+    let geometry = new THREE.PlaneGeometry(0.1, 0.15)
+    let mesh = new THREE.Mesh(geometry, material)
+    mesh.position.set(x, 1.77, 0.4301)
     return mesh
   }
   initNumbers() {
@@ -124,8 +124,8 @@ export default class Number {
       texture.wrapT = THREE.ReplaceStencilOp
       this.group = new THREE.Group()
       this.scene.add(this.group)
-      for (var i = 0; i < 10; i++) {
-        var mesh = null
+      for (let i = 0; i < 10; i++) {
+        let mesh = null
         if (i === 2) {
           mesh = this.createNumberMesh(texture, 12, xAxis[2])
         } else if (i === 6) {
@@ -140,10 +140,10 @@ export default class Number {
   }
   showNumbers(num) {
     if (!num) { return }
-    var numStrArr = this.transformNumber(num)
+    let numStrArr = this.transformNumber(num)
     if (numStrArr.length < 10) {
-      var l = 10 - numStrArr.length
-      for (var i = 0; i < l; i++) {
+      let l = 10 - numStrArr.length
+      for (let i = 0; i < l; i++) {
         numStrArr.push('0')
       }
       numStrArr[6] = ','

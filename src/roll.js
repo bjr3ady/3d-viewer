@@ -2,7 +2,15 @@ import rollFile from './models/roll_01.glb'
 import * as TWEEN from 'es6-tween'
 
 function newRollModel(originalModel) {
-  var newModel = originalModel.clone()
+  let newModel = originalModel.clone()
+  newModel.children.forEach((chi) => {
+    if (chi.type === 'Mesh') {
+      chi.material.flatShading = true
+      // chi.material.roughness = .6
+      chi.material.metalness = .1
+      chi.material.morphNormals = true
+    }
+  })
   newModel.needsUpdate = true
   return newModel
 }
@@ -10,8 +18,7 @@ function newRollModel(originalModel) {
 const R = 3
 
 export default class Roll {
-  constructor(scene, loader) {
-    this.scene = scene
+  constructor(loader) {
     this.loader = loader
     this.isRolling = false
     this.isProc = false
@@ -23,15 +30,12 @@ export default class Roll {
   loadRollModels() {
     return new Promise((resolve, reject) => {
       this.loader.load(rollFile, (gltf) => {
-        this.cRoller = gltf.scene.children[0]
-        this.bRoller = newRollModel(this.cRoller)
-        this.aRoller = newRollModel(this.cRoller)
-        this.scene.add(this.cRoller)
+        this.cRoller = newRollModel(gltf.scene.children[0])
+        this.bRoller = newRollModel(gltf.scene.children[0])
+        this.aRoller = newRollModel(gltf.scene.children[0])
         this.bRoller.position.set(0, 1.25, 0.26)
-        this.scene.add(this.bRoller)
         this.aRoller.position.set(-0.30, 1.25, 0.26)
-        this.scene.add(this.aRoller)
-        resolve()
+        resolve([this.aRoller, this.bRoller, this.cRoller])
       }, undefined, (err) => {
         reject(err)
       })
@@ -42,7 +46,7 @@ export default class Roll {
   }
   stopAt(roller, index, order) {
     return new Promise((resolve) => {
-      var rotationX = {x: roller.rotation.x}
+      let rotationX = {x: roller.rotation.x}
       console.log(`stop: ${(Math.PI / R) * index} index: ${index}`)
       new TWEEN.Tween(rotationX)
         .to({x: (Math.PI / R) * index}, order * 300)

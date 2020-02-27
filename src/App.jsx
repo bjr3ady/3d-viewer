@@ -1,16 +1,16 @@
 import React from 'react'
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader'
-import glbFile from './models/slotmathinel_01.glb'
 import Stats from 'stats.js'
 import bgImg from './models/gradients.png'
+import ModelHandler from './modelHandler'
 import Num from './numbers'
-import Roll from './roll'
 import './App.css'
 import Btn from './Btn'
 
+
 const scores = [3, 6, 9, 12, 15, 800000]
+const acspet = window.innerWidth / window.innerHeight
 
 class App extends React.Component {
   constructor(props) {
@@ -18,28 +18,27 @@ class App extends React.Component {
     this.el = React.createRef()
     this.mixer = null
     this.prevTime = null
+    this.winSprite = null
     this.score = 0
     this.scene = new THREE.Scene()
+    this.HUDScene = new THREE.Scene()
     this.NumberBoard = new Num(this.scene)
-    this.camera = new THREE.PerspectiveCamera(90, window.innerWidth / window.innerHeight, 1, 100)
-    this.renderer = new THREE.WebGLRenderer({antialias: true, outputEncoding: THREE.sRGBEncoding})
+    this.camera = new THREE.PerspectiveCamera(90, acspet, 1, 100)
+    this.HUDCamera = new THREE.OrthographicCamera(window.innerWidth/ -2, window.innerWidth/ 2, window.innerHeight / 2, window.innerHeight / -2, 1, 1000)
+    this.HUDCamera.position.set(0, 0, 10)
+    this.renderer = new THREE.WebGLRenderer({ antialias: true, outputEncoding: THREE.sRGBEncoding, alpha: true})
     this.renderer.setSize(window.innerWidth, window.innerHeight)
-    this.loader = new GLTFLoader()
-    this.rollers = new Roll(this.scene, this.loader)
-    this.worldLight = new THREE.HemisphereLight(0xffffff, 50)
-    this.directionalLight = new THREE.DirectionalLight(0xffffff, 1)
     this.bgTexture = new THREE.TextureLoader().load(bgImg)
-    
+    this.modelHandler = new ModelHandler()
+
     this.animate = this.animate.bind(this)
     this.playAllClips = this.playAllClips.bind(this)
-    this.loadGltf = this.loadGltf.bind(this)
     this.addStats = this.addStats.bind(this)
     this.addLights = this.addLights.bind(this)
-    this.addFloor = this.addFloor.bind(this)
     this.calculateScores = this.calculateScores.bind(this)
   }
-  addStats(stsNo){
-    var sts = new Stats()
+  addStats(stsNo) {
+    let sts = new Stats()
     sts.dom.style.postion = 'relative'
     sts.dom.style.float = 'left'
     document.body.appendChild(sts.dom)
@@ -47,8 +46,8 @@ class App extends React.Component {
     return sts
   }
   resize() {
-    var width = window.innerWidth
-    var height = window.innerHeight
+    let width = window.innerWidth
+    let height = window.innerHeight
     this.renderer.setSize(width, height)
     this.camera.aspect = width / height
     this.camera.updateProjectionMatrix()
@@ -60,6 +59,7 @@ class App extends React.Component {
       this.controls.update()
       this.mixer && this.mixer.update(time)
       this.renderer.render(this.scene, this.camera)
+      this.renderer.render(this.HUDScene, this.HUDCamera)
       this.prevTime = dt
       this.animate()
       if (this.rollers && this.rollers.animate) {
@@ -72,59 +72,34 @@ class App extends React.Component {
       this.mixer.clipAction(clip).reset().play()
     })
   }
-  walkMeshes(scene) {
-    var meshes = new THREE.Group()
-    if (scene && scene.children && scene.children.length) {
-      scene.children.forEach((child) => {
-        if (child.type === 'Mesh') {
-          meshes.add(new THREE.Mesh(child.geometry, child.material))
-        } else {
-          this.walkMeshes(child)
-        }
-      })
-    }
-    return meshes
-  }
-  loadGltf(file) {
-    return new Promise((resolve, reject) => {
-      this.loader.load(file, (gltf) => {
-        this.scene.add(gltf.scene)
-        resolve()
-      }, undefined, (err) => {
-        reject(err)
-      })
-    })
-  }
   addLights() {
-    var topLight = new THREE.DirectionalLight(0xffffff, 2)
-    topLight.position.set(0, 3, 3)
+    var topLight = new THREE.PointLight(0xffffff, 2, 8);
+    topLight.position.set(0, 3, 3);
+    topLight.castShadow = true
     this.scene.add(topLight)
-    
-    var leftLight = new THREE.DirectionalLight(0xffffff, 1)
+
+    let bottomLight = new THREE.DirectionalLight(0xffffff, .35)
+    bottomLight.position.set(0, -1.5, 3)
+    bottomLight.castShadow = true
+    this.scene.add(bottomLight)
+
+    let leftLight = new THREE.DirectionalLight(0xffffff, 1)
     leftLight.position.set(-3, 3, -3)
     this.scene.add(leftLight)
 
-    var rightLight = new THREE.DirectionalLight(0xffffff, 1)
+    let rightLight = new THREE.DirectionalLight(0xffffff, 1)
     rightLight.position.set(3, 3, -3)
     this.scene.add(rightLight)
-  }
-  addFloor() {
-    var geometry = new THREE.Geometry()
-    var material = new THREE.MeshStandardMaterial( { color : 0xffffff } )
-    geometry.vertices.push( new THREE.Vector3( -50, -50, 0 ) )
-    geometry.vertices.push( new THREE.Vector3(  50, -50, 0 ) )
-    geometry.vertices.push( new THREE.Vector3(  50,  50, 0 ) )
-    geometry.computeFaceNormals()
-    geometry.computeVertexNormals()
-    this.scene.add(new THREE.Mesh( geometry, material ))
   }
   componentDidMount() {
     window.addEventListener('resize', this.resize.bind(this))
     this.el.current.appendChild(this.renderer.domElement)
-    this.renderer.setPixelRatio( window.devicePixelRatio )
+    this.renderer.setPixelRatio(window.devicePixelRatio)
+    this.renderer.autoClear = false
+    this.renderer.shadowMap.enabled = true
     this.controls = new OrbitControls(this.camera, this.renderer.domElement)
     this.controls.target.set(0, 1, 0)
-    this.controls.enablePan = false
+    // this.controls.enablePan = false
     this.mixer = new THREE.AnimationMixer()
     this.camera.position.set(0, 1.2, 2)
 
@@ -137,12 +112,16 @@ class App extends React.Component {
     //Add lights
     this.addLights()
 
-    //Add floor
-    // this.addFloor()
-
     //load gltf
-    this.loadGltf(glbFile)
-    this.rollers.loadRollModels()
+    this.modelHandler.loadAll().then(models => {
+      this.scene.add(...models[0]) // machine model
+      this.winSprite = models[1]
+      this.HUDScene.add(this.winSprite.sprite) // wining sprites
+      this.rollers = models[2]
+      this.scene.add(models[2].aRoller) // roller0 model
+      this.scene.add(models[2].bRoller) // roller1 model
+      this.scene.add(models[2].cRoller) // roller2 model
+    })
 
     //Show axes
     this.scene.add(new THREE.AxesHelper(5))
@@ -161,16 +140,18 @@ class App extends React.Component {
       if (aNum === bNum && bNum === cNum) {
         this.score += scores[aNum] * 3
         this.NumberBoard.showNumbers(this.score)
+        this.winSprite.play()
       } else if (aNum === bNum || aNum === cNum || bNum === cNum) {
         this.score += scores[aNum] * 2
         this.NumberBoard.showNumbers(this.score)
+        this.winSprite.play()
       }
     }
   }
   render() {
     return (
       <div className="App" ref={this.el}>
-        <Btn rollers={this.rollers} callback={this.calculateScores} />
+        <Btn rollers={this.modelHandler.rollers} callback={this.calculateScores} />
       </div>
     )
   }
