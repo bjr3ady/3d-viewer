@@ -75,6 +75,7 @@ export default class ModelHandler {
           btnFrame.position.z = -btnFrame.position.z
           btnFrame.position.x = -btnFrame.position.x
           btnFrame.rotation.x = Math.PI -btnFrame.rotation.x
+          btnFrame.rotation.z = Math.PI -btnFrame.rotation.z
           result.push(btnFrame)
         }
 
