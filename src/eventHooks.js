@@ -4,9 +4,11 @@ const fetchObject = function (node, typeName, meshName) {
   var result = null
   if (node.children && node.children.length) {
     for (var i = 0; i < node.children.length; i++) {
-      if (node.children[i].type === typeName && node.children[i].name === meshName) {
-        result = node.children[i]
+      if (result != null) {
         break
+      }
+      if (node.children[i].type === typeName && node.children[i].name === meshName) {
+        return node.children[i]
       } else {
         result = fetchObject(node.children[i], typeName, meshName)
       }
@@ -31,6 +33,9 @@ export default class EventHook {
       this.mouse.y = -(e.clientY / this.renderer.domElement.clientHeight) * 2 + 1
       this.raycaster.setFromCamera(this.mouse, this.camera)
       let target = fetchObject(this.scene, 'Mesh', targetName)
+      if (!target) {
+        return
+      }
       
       let intersects  = this.raycaster.intersectObjects(this.scene.children, true)
       for(let i = 0; i < intersects.length; i++) {

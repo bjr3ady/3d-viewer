@@ -10,9 +10,11 @@ const fetchObject = function (node, typeName, meshName) {
   var result = null
   if (node.children && node.children.length) {
     for (var i = 0; i < node.children.length; i++) {
-      if (node.children[i].type === typeName && node.children[i].name === meshName) {
-        result = node.children[i]
+      if (result != null) {
         break
+      }
+      if (node.children[i].type === typeName && node.children[i].name === meshName) {
+        return node.children[i]
       } else {
         result = fetchObject(node.children[i], typeName, meshName)
       }
@@ -77,6 +79,7 @@ export default class ModelHandler {
           btnFrame.rotation.x = Math.PI -btnFrame.rotation.x
           btnFrame.rotation.z = Math.PI -btnFrame.rotation.z
           result.push(btnFrame)
+          console.log(btnFrame)
         }
 
         let spinFrame = fetchObject(scene.scene, 'Mesh', 'spin_frame')
@@ -129,7 +132,6 @@ export default class ModelHandler {
         this.loadWinSprite(),
         this.rollers.loadRollModels()
       ]).then(results => {
-        console.log(results)
         resolve([
           results[0],
           results[1],

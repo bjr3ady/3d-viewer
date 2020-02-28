@@ -6,6 +6,7 @@ import bgImg from './models/gradients.png'
 import ModelHandler from './modelHandler'
 import EvtHook from './eventHooks'
 import Num from './numbers'
+import Bet from './bet'
 import './App.css'
 // import Btn from './Btn'
 import SpinBtn from './spinBtn'
@@ -13,6 +14,7 @@ import SpinBtn from './spinBtn'
 
 const scores = [3, 6, 9, 12, 15, 800000]
 const acspet = window.innerWidth / window.innerHeight
+const BET_SETP_NUM = 1000
 
 class App extends React.Component {
   constructor(props) {
@@ -26,6 +28,7 @@ class App extends React.Component {
     this.HUDScene = new THREE.Scene()
     this.targets = []
     this.NumberBoard = new Num(this.scene)
+    this.BetBoard = new Bet(this.scene, this)
     this.camera = new THREE.PerspectiveCamera(90, acspet, 1, 100)
     this.HUDCamera = new THREE.OrthographicCamera(window.innerWidth/ -2, window.innerWidth/ 2, window.innerHeight / 2, window.innerHeight / -2, 1, 1000)
     this.HUDCamera.position.set(0, 0, 10)
@@ -105,6 +108,15 @@ class App extends React.Component {
     this.spinBtn = new SpinBtn(this.rollers, this.calculateScores)
     this.eventHook.bind('spin_frame', 'mouseup', this.spinBtn.btnClick)
     this.eventHook.bind('spin_frame', 'mousedown', this.spinBtn.btnDown)
+
+    this.eventHook.bind('plus_btn', 'mousedown', this.BetBoard.plusBtnDown)
+    this.eventHook.bind('plus_btn', 'mouseup', target => {
+      this.BetBoard.plusBtnUp(target, BET_SETP_NUM)
+    })
+    this.eventHook.bind('minus_btn', 'mousedown', this.BetBoard.minusBtnDown)
+    this.eventHook.bind('minus_btn', 'mouseup', target => {
+      this.BetBoard.minusBtnUp(target, BET_SETP_NUM)
+    })
   }
   componentDidMount() {
     window.addEventListener('resize', this.resize.bind(this))
@@ -112,7 +124,7 @@ class App extends React.Component {
     this.eventHook = new EvtHook(this.el.current, this.scene, this.renderer, this.camera)
     this.renderer.setPixelRatio(window.devicePixelRatio)
     this.renderer.autoClear = false
-    this.renderer.shadowMap.enabled = true
+    // this.renderer.shadowMap.enabled = true
     this.controls = new OrbitControls(this.camera, this.renderer.domElement)
     this.controls.target.set(0, 1, 0)
     this.controls.enablePan = false
@@ -147,6 +159,9 @@ class App extends React.Component {
     //Init number board
     this.NumberBoard.initNumbers()
 
+    //Init bet board
+    this.BetBoard.initNumbers()
+
     this.animate()
   }
   componentWillUnmount() {
@@ -156,11 +171,11 @@ class App extends React.Component {
     console.log(`num: ${aNum} | ${bNum} | ${cNum}`)
     if (this.NumberBoard && this.NumberBoard.showNumbers) {
       if (aNum === bNum && bNum === cNum) {
-        this.score += scores[aNum] * 3
+        this.score += scores[aNum] * 3 * this.BetBoard.bet
         this.NumberBoard.showNumbers(this.score)
         this.winSprite.play()
       } else if (aNum === bNum || aNum === cNum || bNum === cNum) {
-        this.score += scores[aNum] * 2
+        this.score += scores[aNum] * 2 * this.BetBoard.bet
         this.NumberBoard.showNumbers(this.score)
         this.winSprite.play()
       }

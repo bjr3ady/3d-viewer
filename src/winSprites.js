@@ -36,7 +36,6 @@ export default class SpriteAnimation {
     this.sprite.material.map = this.currentTexture
     this.sprite.material.opacity = 0
     console.log('reset')
-    console.log(this.sprite)
   }
   play() {
     if (this.isPlaying) {
