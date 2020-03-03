@@ -1,6 +1,7 @@
 import React from 'react'
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
+import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader'
 import Stats from 'stats.js'
 import bgImg from './models/gradients.png'
 import ModelHandler from './modelHandler'
@@ -10,6 +11,7 @@ import Bet from './bet'
 import './App.css'
 // import Btn from './Btn'
 import SpinBtn from './spinBtn'
+import hdr from './models/venice_sunset_1k.hdr'
 
 
 const scores = [3, 6, 9, 12, 15, 800000]
@@ -29,7 +31,7 @@ class App extends React.Component {
     this.targets = []
     this.NumberBoard = new Num(this.scene)
     this.BetBoard = new Bet(this.scene, this)
-    this.camera = new THREE.PerspectiveCamera(90, acspet, 1, 100)
+    this.camera = new THREE.PerspectiveCamera(45, acspet, 1, 100)
     this.HUDCamera = new THREE.OrthographicCamera(window.innerWidth/ -2, window.innerWidth/ 2, window.innerHeight / 2, window.innerHeight / -2, 1, 1000)
     this.HUDCamera.position.set(0, 0, 10)
     this.renderer = new THREE.WebGLRenderer({ antialias: true, outputEncoding: THREE.sRGBEncoding, alpha: true})
@@ -84,8 +86,23 @@ class App extends React.Component {
       this.mixer.clipAction(clip).reset().play()
     })
   }
+  addEnv() {
+    return new Promise((resolve, reject) => {
+      new RGBELoader()
+      .setDataType(THREE.UnsignedByteType)
+      .load(hdr, tx => {
+        var pmremGenerator = new THREE.PMREMGenerator( this.renderer );
+        pmremGenerator.compileEquirectangularShader()
+        var envMap = pmremGenerator.fromEquirectangular(tx).texture
+        this.scene.background = envMap
+        this.scene.environment = envMap
+        resolve(envMap)
+        envMap.dispose()
+      })
+    })
+  }
   addLights() {
-    var topLight = new THREE.PointLight(0xffffff, 2, 8);
+    var topLight = new THREE.PointLight(0xffffff, 1, 8);
     topLight.position.set(0, 3, 3);
     topLight.castShadow = true
     this.scene.add(topLight)
@@ -95,11 +112,11 @@ class App extends React.Component {
     bottomLight.castShadow = true
     this.scene.add(bottomLight)
 
-    let leftLight = new THREE.DirectionalLight(0xffffff, 1)
+    let leftLight = new THREE.DirectionalLight(0xffffff, .3)
     leftLight.position.set(-3, 3, -3)
     this.scene.add(leftLight)
 
-    let rightLight = new THREE.DirectionalLight(0xffffff, 1)
+    let rightLight = new THREE.DirectionalLight(0xffffff, .3)
     rightLight.position.set(3, 3, -3)
     this.scene.add(rightLight)
   }
@@ -124,6 +141,11 @@ class App extends React.Component {
     this.eventHook = new EvtHook(this.el.current, this.scene, this.renderer, this.camera)
     this.renderer.setPixelRatio(window.devicePixelRatio)
     this.renderer.autoClear = false
+    this.renderer.shadowMap.enabled = true
+    this.renderer.toneMapping = THREE.ACESFilmicToneMapping
+    this.renderer.toneMappingWhitePoint = 1.0
+    this.renderer.toneMappingExposure = 0.8
+
     // this.renderer.shadowMap.enabled = true
     this.controls = new OrbitControls(this.camera, this.renderer.domElement)
     this.controls.target.set(0, 1, 0)
@@ -131,8 +153,7 @@ class App extends React.Component {
     this.mixer = new THREE.AnimationMixer()
     this.camera.position.set(0, 1.2, 2)
 
-    //Set background
-    this.scene.background = this.bgTexture
+    // this.scene.background = this.bgTexture
 
     //FPS panel
     this.fpsStats = this.addStats(0)
@@ -140,17 +161,20 @@ class App extends React.Component {
     //Add lights
     this.addLights()
 
-    //load gltf
-    this.modelHandler.loadAll().then(models => {
-      this.scene.add(...models[0]) // machine model
-      this.winSprite = models[1]
-      this.HUDScene.add(this.winSprite.sprite) // wining sprites
-      this.rollers = models[2]
-      this.scene.add(models[2].aRoller) // roller0 model
-      this.scene.add(models[2].bRoller) // roller1 model
-      this.scene.add(models[2].cRoller) // roller2 model
+    
+    this.addEnv().then(() => {
+      //load gltf
+      this.modelHandler.loadAll().then(models => {
+        this.scene.add(...models[0]) // machine model
+        this.winSprite = models[1]
+        this.HUDScene.add(this.winSprite.sprite) // wining sprites
+        this.rollers = models[2]
+        this.scene.add(models[2].aRoller) // roller0 model
+        this.scene.add(models[2].bRoller) // roller1 model
+        this.scene.add(models[2].cRoller) // roller2 model
 
-      this.bindEvents()
+        this.bindEvents()
+      })
     })
 
     //Show axes

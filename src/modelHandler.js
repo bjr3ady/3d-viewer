@@ -1,5 +1,5 @@
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader'
-import machineFile from './models/slotmachine_all.glb'
+import machineFile from './models/slotmachine_all_0.glb'
 import sprites from './models/win-anim/sprites'
 import winSp from './winSprites'
 import bgImg from './models/gradients.png'
@@ -26,7 +26,7 @@ const fetchObject = function (node, typeName, meshName) {
 const createJackportMaterial = function () {
   return new Promise((resolve, reject) => {
     new THREE.TextureLoader().load(bgImg, (texture) => {
-      resolve(new THREE.MeshBasicMaterial({ map: texture, flatShading: true}))
+      resolve(new THREE.MeshBasicMaterial({ map: texture, flatShading: true, metalness: 1}))
       }, undefined, err => {
         reject(err)
       })
@@ -53,6 +53,10 @@ export default class ModelHandler {
       this.loadGlb(machineFile).then(scene => {
         let machineModel = fetchObject(scene.scene, 'Mesh', 'machine')
         if (machineModel) {
+          machineModel.material.metalness = 1
+          machineModel.material.roughness = .5
+          machineModel.material.morphNormals = true
+          machineModel.material.flatShading = true
           machineModel.rotation.set(0, Math.PI, 0)
           result.push(machineModel)
         }

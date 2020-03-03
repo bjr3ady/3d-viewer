@@ -7,7 +7,7 @@ function newRollModel(originalModel) {
     if (chi.type === 'Mesh') {
       chi.material.flatShading = true
       // chi.material.roughness = .6
-      chi.material.metalness = .1
+      chi.material.metalness = .3
       chi.material.morphNormals = true
     }
   })
