@@ -31,7 +31,7 @@ class App extends React.Component {
     this.targets = []
     this.NumberBoard = new Num(this.scene)
     this.BetBoard = new Bet(this.scene, this)
-    this.camera = new THREE.PerspectiveCamera(45, acspet, 1, 100)
+    this.camera = new THREE.PerspectiveCamera(60, acspet, 1, 1000)
     this.HUDCamera = new THREE.OrthographicCamera(window.innerWidth/ -2, window.innerWidth/ 2, window.innerHeight / 2, window.innerHeight / -2, 1, 1000)
     this.HUDCamera.position.set(0, 0, 10)
     this.renderer = new THREE.WebGLRenderer({ antialias: true, outputEncoding: THREE.sRGBEncoding, alpha: true})
@@ -70,7 +70,7 @@ class App extends React.Component {
     this.fpsStats.update()
     requestAnimationFrame((dt) => {
       const time = (dt - this.prevTime) / 1000
-      this.controls.update()
+      // this.controls.update()
       this.mixer && this.mixer.update(time)
       this.renderer.render(this.scene, this.camera)
       this.renderer.render(this.HUDScene, this.HUDCamera)
@@ -91,7 +91,7 @@ class App extends React.Component {
       new RGBELoader()
       .setDataType(THREE.UnsignedByteType)
       .load(hdr, tx => {
-        var pmremGenerator = new THREE.PMREMGenerator( this.renderer );
+        var pmremGenerator = new THREE.PMREMGenerator( this.renderer )
         pmremGenerator.compileEquirectangularShader()
         var envMap = pmremGenerator.fromEquirectangular(tx).texture
         this.scene.background = envMap
@@ -102,21 +102,21 @@ class App extends React.Component {
     })
   }
   addLights() {
-    var topLight = new THREE.PointLight(0xffffff, 1, 8);
-    topLight.position.set(0, 3, 3);
+    let topLight = new THREE.DirectionalLight(0xffffff, 1.3)
+    topLight.position.set(0, 6, 2)
     topLight.castShadow = true
     this.scene.add(topLight)
 
-    let bottomLight = new THREE.DirectionalLight(0xffffff, .35)
+    let bottomLight = new THREE.DirectionalLight(0xffffff, .5)
     bottomLight.position.set(0, -1.5, 3)
     bottomLight.castShadow = true
     this.scene.add(bottomLight)
 
-    let leftLight = new THREE.DirectionalLight(0xffffff, .3)
+    let leftLight = new THREE.DirectionalLight(0xffffff, 1)
     leftLight.position.set(-3, 3, -3)
     this.scene.add(leftLight)
 
-    let rightLight = new THREE.DirectionalLight(0xffffff, .3)
+    let rightLight = new THREE.DirectionalLight(0xffffff, 1)
     rightLight.position.set(3, 3, -3)
     this.scene.add(rightLight)
   }
@@ -144,16 +144,17 @@ class App extends React.Component {
     this.renderer.shadowMap.enabled = true
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping
     this.renderer.toneMappingWhitePoint = 1.0
-    this.renderer.toneMappingExposure = 0.8
+    this.renderer.toneMappingExposure = 1
 
-    // this.renderer.shadowMap.enabled = true
-    this.controls = new OrbitControls(this.camera, this.renderer.domElement)
-    this.controls.target.set(0, 1, 0)
-    this.controls.enablePan = false
+    // this.controls = new OrbitControls(this.camera, this.renderer.domElement)
+    // this.controls.target.set(0, 1, 0)
+    // this.controls.enablePan = false
     this.mixer = new THREE.AnimationMixer()
     this.camera.position.set(0, 1.2, 2)
+    this.camera.lookAt(0, 1, 0)
+    this.camera.scale.set(1, 1, 0.6)
 
-    // this.scene.background = this.bgTexture
+    this.scene.background = this.bgTexture
 
     //FPS panel
     this.fpsStats = this.addStats(0)
@@ -162,7 +163,7 @@ class App extends React.Component {
     this.addLights()
 
     
-    this.addEnv().then(() => {
+    // this.addEnv().then(() => {
       //load gltf
       this.modelHandler.loadAll().then(models => {
         this.scene.add(...models[0]) // machine model
@@ -175,7 +176,7 @@ class App extends React.Component {
 
         this.bindEvents()
       })
-    })
+    // })
 
     //Show axes
     // this.scene.add(new THREE.AxesHelper(5))
@@ -207,9 +208,7 @@ class App extends React.Component {
   }
   render() {
     return (
-      <div className="App" ref={this.el}>
-        {/* <Btn rollers={this.modelHandler.rollers} callback={this.calculateScores} /> */}
-      </div>
+      <div className="App" ref={this.el}></div>
     )
   }
 }

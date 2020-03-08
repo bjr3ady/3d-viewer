@@ -27,10 +27,6 @@ function addPeriod(reversedNumStr) {
   return result.join('')
 }
 
-function addKStr(reversedNumStr) {
-
-}
-
 function setNumber(num, index, group) {
   console.log(num)
   if (!num) { return }
